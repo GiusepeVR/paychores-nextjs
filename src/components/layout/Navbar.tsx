@@ -2,12 +2,9 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import Image from 'next/image';
-import { useUser } from '@/components/context/UserContext';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isUserLoggedIn, handleLogout } = useUser();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -16,44 +13,27 @@ export default function Navbar() {
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex justify-between items-center h-16'>
           <div className='flex-shrink-0'>
-            <Link href='/' className='text-2xl font-bold text-primary-600'>
-              <Image
-                src='/logos/darkLogo.svg'
-                alt='Soundboxd'
-                width={150}
-                height={150}
-                className='w-[150px] h-auto'
-              />
+            <Link href='/' className='text-2xl font-bold text-primary-600 flex items-center space-x-2'>
+              <span className='text-2xl'>💳</span>
+              <span className='font-bold text-xl'>PayChores</span>
             </Link>
           </div>
 
           <div className='hidden md:block'>
             <div className='ml-10 flex items-baseline space-x-4'>
-              {!isUserLoggedIn && (
-                <Link
-                  href='/login'
-                  className='text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                >
-                  Sign in
-                </Link>
-              )}
-              {isUserLoggedIn && (
-                <Link
-                  href='/dashboard'
-                  className='text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                >
-                  My music
-                </Link>
-              )}
-              {isUserLoggedIn && (
-                <Link
-                  href='/'
-                  className='text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Link>
-              )}
+              <Link
+                href='/'
+                className='text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors'
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={() => {/* TODO: Open settings modal */}}
+                className='text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium transition-colors'
+                title='Settings'
+              >
+                ⚙️
+              </button>
             </div>
           </div>
 
@@ -92,36 +72,13 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className='md:hidden'>
             <div className='px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-200'>
-              {!isUserLoggedIn && (
-                <Link
-                  href='/login'
-                  className='text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign in
-                </Link>
-              )}
-              {isUserLoggedIn && (
-                <Link
-                  href='/dashboard'
-                  className='text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  My music
-                </Link>
-              )}
-              {isUserLoggedIn && (
-                <Link
-                  href='/'
-                  className='text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-sm font-medium transition-colors'
-                  onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
-                  }}
-                >
-                  Logout
-                </Link>
-              )}
+              <Link
+                href='/'
+                className='text-gray-700 hover:text-primary-600 block px-3 py-2 rounded-md text-sm font-medium transition-colors'
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
             </div>
           </div>
         )}

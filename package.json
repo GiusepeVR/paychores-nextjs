@@ -1,5 +1,5 @@
 {
-  "name": "soundboxd",
+  "name": "paychores",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,9 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.86.0",
-    "dotenv": "^17.2.1",
-    "framer-motion": "^12.23.12",
+    "date-fns": "^4.1.0",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0"
