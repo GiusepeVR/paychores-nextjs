@@ -1,48 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PayChores 💳
 
-## Getting Started
+A simple, privacy-focused bill tracking application to help you never miss a payment again.
 
-First, run the development server:
+## Features ✨
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Current Features (v1.0.0)
+- **📋 Bill Management**: Add, edit, and delete bills with ease
+- **📅 Due Date Tracking**: Automatic detection of overdue and due-soon bills  
+- **🏷️ Category Organization**: Organize bills by type (utilities, rent, insurance, etc.)
+- **💰 Payment Tracking**: Mark bills as paid/unpaid with timestamps
+- **📊 Statistics Overview**: Dashboard with bill counts and total amounts
+- **🔍 Filtering & Sorting**: Filter by category and payment status
+- **📱 Responsive Design**: Works on desktop and mobile devices
+- **💾 Data Export/Import**: Backup and restore your bill data
+- **🔒 Privacy-First**: All data stored locally, no server required
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Coming Soon 🚀
+- **☁️ Google Account Sync**: Sync bills across devices
+- **🔔 Notifications**: Email and push reminders for due bills
+- **📈 Analytics**: Spending insights and payment history
+- **🔄 Recurring Bills**: Automatic bill generation for monthly expenses
+- **👥 Shared Bills**: Split bills with roommates or family
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack 🛠️
 
-## Environment Variables
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Date Handling**: date-fns
+- **Storage**: Browser localStorage (Cloud sync coming soon)
 
-To use this application with Spotify, you need to set up environment variables. Create a `.env.local` file in the root directory with the following variables:
+## Getting Started 🚀
 
-```bash
-# Spotify Configuration
-NEXT_PUBLIC_SPOTIFY_REDIRECT_URI_DEV=http://127.0.0.1:3000/auth/callback
-NEXT_PUBLIC_SPOTIFY_REDIRECT_URI_PROD=https://yourdomain.com/auth/callback
-```
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Note:** Replace `https://yourdomain.com` with your actual production domain when deploying. SPOTIFY OAUTH2.0 IS LIMITED TO 25 USERS IN DEVELOPMENT MODE. PLEASE SUBMIT A VALID EMAIL LINKED TO AN ACTIVE SPOTIFY ACCOUNT TO: giusepe.vr@gmail.com IN ORDER TO TEST AUTHENTICATION FLOW. 
+2. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Open your browser**
+   Navigate to `http://localhost:3000`
 
-## Learn More
+## Usage 📖
 
-To learn more about Next.js, take a look at the following resources:
+### Adding Your First Bill
+1. Click the "Add Bill" button on the dashboard
+2. Fill in the bill details:
+   - **Name**: e.g., "Electric Bill"
+   - **Amount**: Monthly amount in dollars
+   - **Due Date**: When the bill is due
+   - **Category**: Select from predefined categories
+   - **Description**: Optional notes about the bill
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Managing Bills
+- **Mark as Paid**: Click the green "Mark Paid" button
+- **Edit**: Click "Edit" to modify bill details
+- **Delete**: Click "Delete" to remove a bill
+- **Filter**: Use the dropdown menus to filter by category or status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Data Management
+- **Export**: Download a backup of your bills as JSON
+- **Import**: Restore bills from a backup file
 
-## Deploy on Vercel
+## Architecture 🏗️
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Local-First Approach
+- Bills are stored in browser localStorage for privacy and offline access
+- No server required for basic functionality
+- Future cloud sync will be opt-in
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Type Safety
+- Full TypeScript implementation with strict typing
+- Exhaustive checking for sort fields and categories
+- Strong validation for all bill operations
+
+### Future-Ready
+- Authentication context prepared for Google OAuth
+- Cloud sync hooks ready for implementation  
+- Settings panel prepared for advanced features
+
+## Privacy & Security 🔐
+
+- **Local Storage**: All data stays on your device
+- **No Tracking**: No analytics or user tracking
+- **No Account Required**: Works offline without signup
+- **Future Auth**: Google login will be optional for cloud sync
+
+---
+
+Made with ❤️ for better financial organization

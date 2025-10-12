@@ -1,224 +1,189 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components';
-import { MusicCard } from '@/components';
-import { useUser } from '@/components/context/UserContext';
-import { useRouter } from 'next/navigation';
-import { Reorder } from 'framer-motion';
-import {
-  useTopFiveAlbums,
-  useTrendingTracks,
-  type Album,
-  type Track,
-} from '@/hooks/useDeezerData';
-
-const genres = ['Pop', 'Rock', 'Rap', 'Electronic', 'Alternative'];
+import { useState } from 'react';
+import { Button, BillCard, AddBillForm } from '@/components';
+import { useBills, useBillStats, useFilteredBills } from '@/hooks/useBills';
+import { Bill, BillCategory, BILL_CATEGORIES } from '@/types/bill';
 
 export default function Home() {
-  const router = useRouter();
-  const { isUserLoggedIn } = useUser();
-  const [selectedGenre, setSelectedGenre] = useState('Pop');
-  const [reorderedAlbums, setReorderedAlbums] = useState<Album[]>([]);
+  const { bills, loading, addBill, updateBill, deleteBill, togglePaid } = useBills();
+  const stats = useBillStats(bills);
+  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingBill, setEditingBill] = useState<Bill | undefined>();
+  const [filterCategory, setFilterCategory] = useState<BillCategory | ''>('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'paid' | 'unpaid'>('all');
+  
+  const filters = {
+    ...(filterCategory && { category: filterCategory }),
+    ...(filterStatus !== 'all' && { isPaid: filterStatus === 'paid' }),
+  };
+  
+  const filteredBills = useFilteredBills(bills, filters, 'dueDate', 'asc');
 
-  const { data: topFiveAlbums = [], isLoading: topFiveLoading } =
-    useTopFiveAlbums();
-  const { data: trendingTracks = [], isLoading: trendingLoading } =
-    useTrendingTracks(selectedGenre);
-
-  useEffect(() => {
-    setReorderedAlbums(topFiveAlbums);
-  }, [topFiveAlbums]);
-
-  const hasTopFive = reorderedAlbums && reorderedAlbums.length >= 5;
-
-  const handleGenreClick = (genre: string) => {
-    if (genre !== selectedGenre) {
-      setSelectedGenre(genre);
-    }
+  const handleAddBill = (billData: Bill) => {
+    addBill(billData);
+    setShowAddForm(false);
   };
 
-  const handleRedirect = (isLoggedIn: boolean) => {
-    if (!isLoggedIn) {
-      router.push('/login');
-    } else {
-      router.push('/dashboard');
-    }
+  const handleEditBill = (bill: Bill) => {
+    setEditingBill(bill);
+    setShowAddForm(true);
   };
+
+  const handleUpdateBill = (billData: Bill) => {
+    updateBill(billData);
+    setEditingBill(undefined);
+    setShowAddForm(false);
+  };
+
+  const handleCancelForm = () => {
+    setShowAddForm(false);
+    setEditingBill(undefined);
+  };
+
+  if (loading) {
+    return (
+      <div className='flex justify-center items-center min-h-screen'>
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+      </div>
+    );
+  }
 
   return (
-    <div className='p-8 bg-white flex flex-col overflow-hidden'>
-      <div className='flex flex-col items-center justify-center h-screen relative'>
-        <div className='absolute inset-0 flex items-center justify-center z-50'>
-          <div className='text-center z-50'>
-            <h1 className='text-3xl text-gray-900 font-semibold mb-4 whitespace-pre-line pt-16 sm:pt-6'>
-              <span className='block'>Dive into your music.</span>
-              <span className='block'>Share what you liked.</span>
-            </h1>
-            <Button
-              variant='primary'
-              size='lg'
-              className='z-50'
-              onClick={() => handleRedirect(isUserLoggedIn)}
-            >
-              {isUserLoggedIn ? 'View my music' : 'Get Started'}
-            </Button>
-          </div>
-
-          {hasTopFive && (
-            <div className='absolute flex items-center justify-center top-1/8'>
-              <Reorder.Group
-                axis='x'
-                values={reorderedAlbums}
-                onReorder={setReorderedAlbums}
-                className='flex items-center space-x-4'
-              >
-                {reorderedAlbums.map((album, index) => {
-                  const coverFlowConfig = [
-                    {
-                      wrapper: 'transform -rotate-12 scale-75 opacity-80',
-                      size: 'w-32 h-32',
-                    },
-                    {
-                      wrapper: 'transform -rotate-6 scale-90 opacity-90',
-                      size: 'w-40 h-40',
-                    },
-                    { wrapper: 'transform scale-110 z-10', size: 'w-56 h-56' },
-                    {
-                      wrapper: 'transform rotate-6 scale-90 opacity-90',
-                      size: 'w-40 h-40',
-                    },
-                    {
-                      wrapper: 'transform rotate-12 scale-75 opacity-80',
-                      size: 'w-32 h-32',
-                    },
-                  ];
-                  const cfg = coverFlowConfig[index] || coverFlowConfig[2];
-
-                  const imageUrl =
-                    album?.cover_big ||
-                    album?.cover_xl ||
-                    album?.cover_medium ||
-                    album?.cover ||
-                    '/static/albums/fallback.jpeg';
-                  const title = album?.title || 'Unknown Album';
-                  const artist = album?.artist?.name || 'Unknown Artist';
-                  const id = String(album?.id ?? `${title}-${index}`);
-
-                  return (
-                    <Reorder.Item
-                      key={id}
-                      value={album}
-                      className={cfg.wrapper}
-                      whileDrag={{ scale: 1.1, zIndex: 20 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 300,
-                        damping: 30,
-                      }}
-                    >
-                      <MusicCard
-                        id={id}
-                        title={title}
-                        artist={artist}
-                        imageUrl={imageUrl}
-                        className={cfg.size}
-                        variant='minimal'
-                      />
-                    </Reorder.Item>
-                  );
-                })}
-              </Reorder.Group>
-            </div>
-          )}
+    <div className='min-h-screen bg-gray-50 py-8'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+        {/* Header */}
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900 mb-2'>PayChores</h1>
+          <p className='text-gray-600'>Manage your bills and never miss a payment</p>
         </div>
-        <div className='absolute -top-1/5 left-1/2 -translate-x-1/2 -translate-y-1 sm:-translate-y-2 sm:top-16% w-[800px] h-[800px] bg-gradient-to-r from-primary/60 via-primary/10 to-transparent rounded-full blur-3xl z-10 rotate-270' />
-      </div>
-      <div className='flex flex-col w-full relative py-8 sm:py-12 md:py-16'>
-        <div className='max-w-6xl mx-auto p-6 w-full'>
-          <h2 className='text-3xl text-gray-900 font-semibold whitespace-pre-line mb-6'>
-            Now Trending
-          </h2>
 
-          <ul className='flex flex-row text-gray-700 text-sm gap-4 mb-4 overflow-x-auto'>
-            {genres.map((genre) => (
-              <li
-                key={genre}
-                onClick={() => handleGenreClick(genre)}
-                className={`cursor-pointer hover:text-primary transition-colors whitespace-nowrap ${
-                  selectedGenre === genre
-                    ? 'text-primary font-semibold border-b-2 border-primary pb-1'
-                    : ''
-                }`}
-              >
-                {genre}
-              </li>
-            ))}
-          </ul>
-
-          <div className='min-h-[400px] h-auto xl:overflow-hidden'>
-            {trendingLoading ? (
-              <div className='flex justify-center py-8'>
-                <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+        {/* Stats Cards */}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
+          <div className='bg-white p-6 rounded-lg shadow-sm border'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='text-sm text-gray-600'>Total Bills</p>
+                <p className='text-2xl font-semibold text-gray-900'>{stats.total}</p>
               </div>
-            ) : (
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-4 w-full xl:max-w-full'>
-                {trendingTracks
-                  .slice(0, 9)
-                  .map((track) => {
-                    if (
-                      !track?.id ||
-                      !track?.title ||
-                      !track?.artist?.name ||
-                      !track?.album?.cover_medium
-                    ) {
-                      return null;
-                    }
-
-                    const imageUrl =
-                      track.album.cover_big ||
-                      track.album.cover_xl ||
-                      track.album.cover_medium;
-
-                    return (
-                      <div
-                        key={track.id}
-                        className='w-full xl:max-w-full xl:flex-shrink-0'
-                      >
-                        <MusicCard
-                          id={String(track.id)}
-                          title={track.title}
-                          artist={track.artist.name}
-                          imageUrl={imageUrl}
-                          variant='default'
-                          className='w-full xl:h-full'
-                        />
-                      </div>
-                    );
-                  })
-                  .filter(Boolean)}
+              <div className='text-blue-500 text-2xl'>📋</div>
+            </div>
+          </div>
+          
+          <div className='bg-white p-6 rounded-lg shadow-sm border'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='text-sm text-gray-600'>Overdue</p>
+                <p className='text-2xl font-semibold text-red-600'>{stats.overdue}</p>
               </div>
+              <div className='text-red-500 text-2xl'>⚠️</div>
+            </div>
+          </div>
+          
+          <div className='bg-white p-6 rounded-lg shadow-sm border'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='text-sm text-gray-600'>Due Soon</p>
+                <p className='text-2xl font-semibold text-yellow-600'>{stats.dueSoon}</p>
+              </div>
+              <div className='text-yellow-500 text-2xl'>⏰</div>
+            </div>
+          </div>
+          
+          <div className='bg-white p-6 rounded-lg shadow-sm border'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='text-sm text-gray-600'>Total Amount</p>
+                <p className='text-2xl font-semibold text-gray-900'>${stats.totalAmount.toFixed(2)}</p>
+              </div>
+              <div className='text-green-500 text-2xl'>💰</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6'>
+          <div className='flex flex-wrap gap-4'>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value as BillCategory | '')}
+              className='border border-gray-300 rounded-md px-3 py-2 text-sm'
+            >
+              <option value="">All Categories</option>
+              {BILL_CATEGORIES.map(category => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+            
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'paid' | 'unpaid')}
+              className='border border-gray-300 rounded-md px-3 py-2 text-sm'
+            >
+              <option value="all">All Bills</option>
+              <option value="unpaid">Unpaid</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+          
+          <Button
+            onClick={() => setShowAddForm(true)}
+            variant="primary"
+            leftIcon={<span>+</span>}
+          >
+            Add Bill
+          </Button>
+        </div>
+
+        {/* Bills Grid */}
+        {filteredBills.length === 0 ? (
+          <div className='text-center py-12'>
+            <div className='text-6xl mb-4'>📝</div>
+            <h3 className='text-xl font-semibold text-gray-900 mb-2'>
+              {bills.length === 0 ? 'No bills yet' : 'No bills match your filters'}
+            </h3>
+            <p className='text-gray-600 mb-6'>
+              {bills.length === 0 
+                ? 'Add your first bill to get started' 
+                : 'Try adjusting your filters or add a new bill'
+              }
+            </p>
+            {bills.length === 0 && (
+              <Button onClick={() => setShowAddForm(true)} variant="primary">
+                Add Your First Bill
+              </Button>
             )}
           </div>
-        </div>
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {filteredBills.map(bill => (
+              <BillCard
+                key={bill.id}
+                bill={bill}
+                onTogglePaid={togglePaid}
+                onEdit={handleEditBill}
+                onDelete={deleteBill}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className='flex flex-col items-center justify-center h-screen relative'>
-        <h2 className='text-3xl text-gray-900 font-semibold mb-4 whitespace-pre-line text-center z-100'>
-          <span className='block'>Music is better together.</span>
-          <span className='block'>Start sharing today.</span>
-        </h2>
-        <Button
-          variant='primary'
-          size='lg'
-          className='z-50'
-          onClick={() => handleRedirect(isUserLoggedIn)}
-        >
-          {isUserLoggedIn ? 'View my music' : 'Get Started'}
-        </Button>
-        <div className='absolute top-1/3 -left-24 w-96 h-96 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent rounded-full blur-3xl z-10' />
-        <div className='absolute top-1/3 -right-24 w-[500px] h-[500px] bg-gradient-to-br from-yellow-400/40 via-orange-300/30 to-transparent rounded-full blur-3xl z-10' />
-      </div>
+      {/* Add/Edit Bill Modal */}
+      {showAddForm && (
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
+          <div className='max-w-md w-full'>
+            <AddBillForm
+              onSubmit={editingBill ? handleUpdateBill : handleAddBill}
+              onCancel={handleCancelForm}
+              editingBill={editingBill}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
