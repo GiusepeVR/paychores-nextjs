@@ -28,7 +28,6 @@ export function useBills() {
     }
   }, []);
 
-  // Save bills to localStorage whenever bills change
   useEffect(() => {
     if (!loading) {
       try {
@@ -40,35 +39,73 @@ export function useBills() {
   }, [bills, loading]);
 
   const addBill = (bill: Bill) => {
-    setBills(prev => [...prev, bill]);
-  };
-
-  const updateBill = (updatedBill: Bill) => {
-    setBills(prev =>
-      prev.map(bill => (bill.id === updatedBill.id ? updatedBill : bill))
-    );
-  };
-
-  const deleteBill = (billId: string) => {
-    setBills(prev => prev.filter(bill => bill.id !== billId));
+    setBills((prev) => [...prev, bill]);
   };
 
   const togglePaid = (billId: string) => {
-    setBills(prev =>
-      prev.map(bill =>
-        bill.id === billId
-          ? {
-              ...bill,
-              isPaid: !bill.isPaid,
-              paidAt: !bill.isPaid ? new Date().toISOString() : undefined,
-            }
-          : bill
+    setBills((prev) =>
+      prev.map((bill) =>
+        bill.id === billId ? { ...bill, isPaid: !bill.isPaid } : bill
       )
     );
   };
 
+  const updateBill = (updatedBill: Bill) => {
+    setBills((prev) =>
+      prev.map((bill) => (bill.id === updatedBill.id ? updatedBill : bill))
+    );
+  };
+
+  const deleteBill = (billId: string) => {
+    setBills((prev) => prev.filter((bill) => bill.id !== billId));
+  };
+
+  const moveBillToStatus = (
+    billId: string,
+    newStatus: 'pending' | 'paid' | 'overdue'
+  ) => {
+    setBills((prev) =>
+      prev.map((bill) => {
+        if (bill.id === billId) {
+          const today = new Date();
+          const dueDate = new Date(bill.dueDate);
+
+          switch (newStatus) {
+            case 'paid':
+              return {
+                ...bill,
+                isPaid: true,
+                paidAt: new Date().toISOString(),
+              };
+            case 'overdue':
+              return {
+                ...bill,
+                isPaid: false,
+                paidAt: undefined,
+                dueDate: new Date(
+                  today.getTime() - 24 * 60 * 60 * 1000
+                ).toISOString(), // Set to yesterday
+              };
+            case 'pending':
+              return {
+                ...bill,
+                isPaid: false,
+                paidAt: undefined,
+                dueDate: new Date(
+                  today.getTime() + 7 * 24 * 60 * 60 * 1000
+                ).toISOString(), // Set to next week
+              };
+            default:
+              return bill;
+          }
+        }
+        return bill;
+      })
+    );
+  };
+
   const getBillById = (billId: string): Bill | undefined => {
-    return bills.find(bill => bill.id === billId);
+    return bills.find((bill) => bill.id === billId);
   };
 
   // Future: Cloud synchronization methods
@@ -113,6 +150,7 @@ export function useBills() {
     updateBill,
     deleteBill,
     togglePaid,
+    moveBillToStatus,
     getBillById,
     syncWithCloud,
     exportBills,
@@ -133,17 +171,17 @@ export function useFilteredBills(
 
     // Apply filters
     if (filters.category) {
-      filtered = filtered.filter(bill => bill.category === filters.category);
+      filtered = filtered.filter((bill) => bill.category === filters.category);
     }
 
     if (filters.isPaid !== undefined) {
-      filtered = filtered.filter(bill => bill.isPaid === filters.isPaid);
+      filtered = filtered.filter((bill) => bill.isPaid === filters.isPaid);
     }
 
     if (filters.dueDateRange) {
       const start = new Date(filters.dueDateRange.start);
       const end = new Date(filters.dueDateRange.end);
-      filtered = filtered.filter(bill => {
+      filtered = filtered.filter((bill) => {
         const dueDate = new Date(bill.dueDate);
         return dueDate >= start && dueDate <= end;
       });
@@ -151,7 +189,10 @@ export function useFilteredBills(
 
     // Apply sorting with strong typing
     filtered.sort((a, b) => {
-      const getSortValue = (bill: Bill, sortField: SortBy): string | number | Date => {
+      const getSortValue = (
+        bill: Bill,
+        sortField: SortBy
+      ): string | number | Date => {
         switch (sortField) {
           case 'dueDate':
             return new Date(bill.dueDate);
@@ -185,25 +226,27 @@ export function useFilteredBills(
 export function useBillStats(bills: Bill[]) {
   const stats = {
     total: bills.length,
-    paid: bills.filter(bill => bill.isPaid).length,
-    unpaid: bills.filter(bill => !bill.isPaid).length,
-    overdue: bills.filter(bill => {
+    paid: bills.filter((bill) => bill.isPaid).length,
+    unpaid: bills.filter((bill) => !bill.isPaid).length,
+    overdue: bills.filter((bill) => {
       const today = new Date();
       const dueDate = new Date(bill.dueDate);
       return !bill.isPaid && dueDate < today;
     }).length,
-    dueSoon: bills.filter(bill => {
+    dueSoon: bills.filter((bill) => {
       const today = new Date();
       const dueDate = new Date(bill.dueDate);
-      const sevenDaysFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const sevenDaysFromNow = new Date(
+        today.getTime() + 7 * 24 * 60 * 60 * 1000
+      );
       return !bill.isPaid && dueDate >= today && dueDate <= sevenDaysFromNow;
     }).length,
     totalAmount: bills.reduce((sum, bill) => sum + bill.amount, 0),
     paidAmount: bills
-      .filter(bill => bill.isPaid)
+      .filter((bill) => bill.isPaid)
       .reduce((sum, bill) => sum + bill.amount, 0),
     unpaidAmount: bills
-      .filter(bill => !bill.isPaid)
+      .filter((bill) => !bill.isPaid)
       .reduce((sum, bill) => sum + bill.amount, 0),
   };
 
