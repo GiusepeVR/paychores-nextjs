@@ -1,6 +1,9 @@
 // Layout Components
 export { default as Navbar } from './layout/Navbar';
 export { default as Footer } from './layout/Footer';
+export { default as LayoutToggle } from './layout/LayoutToggle';
+export { default as ListView } from './layout/ListView';
+export { default as KanbanBoard } from './layout/KanbanBoard';
 
 // UI Components
 export { default as Button } from './ui/Button';
